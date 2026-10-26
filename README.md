@@ -1,14 +1,16 @@
 # 听写 · Local Transcriber
 
+[简体中文](#简体中文) | [English](#english)
+
+## 简体中文
+
 **用自己的 OpenAI API Key，把录音和音频文件转成文字。**
 
 听写是一款轻量的原生 macOS 应用，使用 SwiftUI 构建，固定调用 OpenAI `gpt-transcribe` 模型。适合整理口述、访谈、会议录音和学习笔记：录音或导入文件，转写后直接校对、复制、导出。
 
-Native macOS speech-to-text app powered by your OpenAI API key.
-
 > **本地客户端，云端转写。** 应用在 Mac 上运行；发起转写时，音频会直接上传至 OpenAI。需要网络及可用的 OpenAI API 额度，API 费用由你的账户承担。
 
-## 功能
+### 功能
 
 - **原生轻量**：SwiftUI + macOS 系统框架，无第三方依赖，无需 Electron 或 Python 运行时；本机构建的 App 约 2 MB，实际大小随架构和工具链变化。
 - **麦克风录音**：点击开始，停止后转写；首次使用由系统请求麦克风权限。
@@ -19,35 +21,27 @@ Native macOS speech-to-text app powered by your OpenAI API key.
 - **本地历史**：保留最近 100 条记录，支持搜索、重命名和删除，逐段保存已完成的文字。
 - **钥匙串保存密钥**：API Key 存放在 macOS 钥匙串，可在设置中移除。
 
-## 快速开始
+### 快速开始
 
-### 1. 从源码构建
+#### 1. 下载 DMG 并安装
 
-需要 **macOS 14 或更新版本**，以及包含 **Swift 6** 的 Xcode 或 Command Line Tools。可先用 `swift --version` 确认工具链版本。
+当前 DMG 安装包支持 **Apple Silicon（M 系列芯片）Mac、macOS 14 或更新版本**，不支持 Intel Mac。安装后即可使用，无需安装 Xcode 或自行编译。
 
-```sh
-git clone <仓库地址> local-transcriber
-cd local-transcriber
-./scripts/build-app.sh
-open "dist/听写.app"
-```
+1. 打开本仓库的 **Releases** 页面，在对应版本的 **Assets** 中下载 **`LocalTranscriber-macOS-arm64.dmg`**。
+2. 双击 DMG，打开“听写”磁盘映像。
+3. 将窗口中的 **“听写.app”拖到旁边的 Applications（应用程序）快捷方式**，等待复制完成。
+4. 在 Finder 中推出“听写”磁盘映像，然后从 Mac 的“应用程序”文件夹打开“听写”。
+5. 按下面的步骤配置自己的 OpenAI API Key。
 
-将 `<仓库地址>` 替换为本仓库的 GitHub 克隆地址。仓库提供源码，`dist` 由构建脚本生成。
+**首次打开提示**：当前版本采用本地临时签名（ad hoc），尚未完成 Apple Developer ID 签名和公证。如果 macOS 提示无法验证开发者，在确认安装包来源可信且未被篡改后，可按 [Apple 官方指引](https://support.apple.com/zh-cn/102445)，到“系统设置 → 隐私与安全性”中选择“仍要打开”，再按提示确认。
 
-构建成功后会得到：
-
-- `dist/听写.app`：可双击运行，也可以拖入“应用程序”。
-- `dist/LocalTranscriber-macOS.zip`：打包后的 App。
-
-脚本默认构建当前 Mac 的架构，不生成 Universal Binary。生成的应用采用本地临时签名（ad hoc），尚未使用 Apple Developer ID 签名或公证；面向其他 Mac 正式分发时需要完成相应签名与公证。
-
-### 2. 配置 API Key
+#### 2. 配置 API Key
 
 打开“设置与 API Key”，粘贴在 [OpenAI 平台](https://platform.openai.com/api-keys) 创建的 API Key，然后保存。密钥所属项目需要有可用额度和 `gpt-transcribe` 模型访问权限。
 
 无需创建 `.env`，也无需把密钥写入源码。
 
-### 3. 开始转写
+#### 3. 开始转写
 
 1. **录音**：点击“开始录音”，讲话结束后点击“停止并转写”。
 2. **文件**：拖入音频、点击导入区域或使用“导入音频”菜单，确认文件后点击“转写音频”。
@@ -56,7 +50,7 @@ open "dist/听写.app"
 
 应用只在你点击录音按钮后使用麦克风，不采集系统声音。
 
-## 模型、格式与准确度
+### 模型、格式与准确度
 
 应用固定使用 **`gpt-transcribe`**，不会自动切换到其他模型。根据 2026-10-23 核对的 [OpenAI 文件转写指南](https://developers.openai.com/api/docs/guides/speech-to-text) 和 [模型说明](https://developers.openai.com/api/docs/models/gpt-transcribe)，它是官方推荐的高准确度文件转写模型。实际效果仍受噪音、口音、重叠说话和专业术语影响，重要内容应人工校对。
 
@@ -67,7 +61,7 @@ open "dist/听写.app"
 - 转换需要 macOS 能解码源文件。若无法读取，请先转为 M4A、MP3 或 WAV；视频文件需要包含可用音轨。
 - 分段切点可能落在句中，建议复核段落衔接处。当前版本不提供说话人区分、字幕时间轴或实时逐字转写。
 
-## 隐私与数据保存
+### 隐私与数据保存
 
 **上传内容**：仅在发起转写时，将所选音频或录音及填写的语言、关键词、背景提示直接发送至 OpenAI。应用没有自建中转服务，也不包含遥测。
 
@@ -79,7 +73,7 @@ open "dist/听写.app"
 
 **中断与重试**：每完成一段都会保存部分文字。重试会重新处理完整音频、创建新记录，并产生相应 API 费用；之前保存的部分结果不会被覆盖。麦克风意外中断时，应用会尽可能保留可用录音。
 
-## 快捷键
+### 快捷键
 
 - `⌘N`：新建转写
 - `⌘O`：导入音频
@@ -88,9 +82,29 @@ open "dist/听写.app"
 - `⌘⇧E`：导出文本
 - `⌘,`：设置
 
-## 开发与验证
+### 开发与验证
 
 使用 Swift Package Manager 管理项目，界面基于 SwiftUI，音频处理使用 AVFoundation，密钥存储使用 Security 框架。
+
+#### 从源码构建
+
+需要 **macOS 14 或更新版本**，以及包含 **Swift 6** 的 Xcode 或 Command Line Tools。可先用 `swift --version` 确认工具链版本。
+
+```sh
+git clone <仓库地址> local-transcriber
+cd local-transcriber
+bash scripts/build-app.sh
+open "dist/听写.app"
+```
+
+将 `<仓库地址>` 替换为本仓库的 GitHub 克隆地址。构建脚本会生成：
+
+- `dist/听写.app`：可在本机运行的应用。
+- `dist/LocalTranscriber-macOS.zip`：App 的 ZIP 归档。
+
+脚本默认构建当前 Mac 的架构，不生成 Universal Binary，并会使用本地临时签名（ad hoc）签署 App。Release 使用的 DMG 由 App 另行封装；此脚本不会自动生成 DMG。
+
+#### 项目结构与测试
 
 ```text
 .
@@ -115,22 +129,197 @@ swift test --disable-sandbox
 
 当前版本 **1.1.0** 包含 27 项自动测试：7 项文件导入测试、9 项本地状态与历史测试、11 项转写 API 测试。已完成本地构建、自动测试、界面检查，以及合成音频转换和分段验证；真实麦克风录音与真实 OpenAI API 转写仍需在配置密钥和授权后验证。
 
-## 常见问题
+#### 发布到 GitHub Releases
 
-**构建提示缺少 Swift 或工具链版本过低**  
+在 GitHub 网页创建 Release 时，将 `dist/LocalTranscriber-macOS-arm64.dmg` 上传到附件区域，并将 [RELEASE_NOTES.md](RELEASE_NOTES.md) 的内容复制到发布说明中。确认附件上传完成后，再发布 Release。DMG 包含“听写.app”和 Applications 快捷方式，用户可以直接拖拽安装。
+
+如果后续完成 Developer ID 签名和 Apple 公证，应重新封装并上传最终 DMG，同时更新 README 和发布说明中的签名状态。签名与公证需在构建之后完成；不要在完成后再次运行会覆盖签名的构建脚本。
+
+### 常见问题
+
+**构建提示缺少 Swift 或工具链版本过低**
+
 安装包含 Swift 6 的 Xcode 或 Command Line Tools，确认 `swift --version`，再运行构建脚本。
 
-**API Key 无效、余额不足或模型不可用**  
+**API Key 无效、余额不足或模型不可用**
+
 检查密钥所属的 OpenAI 项目、API 额度和模型访问权限。应用会显示错误，不会自动改用其他模型。
 
-**无法录音或没有麦克风权限**  
+**无法录音或没有麦克风权限**
+
 在“系统设置 → 隐私与安全性 → 麦克风”中允许听写访问。请从构建出的 `.app` 启动，使系统正确识别权限说明，并确认当前输入设备可用。
 
-**文件无法导入或转换**  
+**文件无法导入或转换**
+
 每次导入一个已下载到本机的非空音频或视频文件；不能直接拖入文件夹、快捷方式或网页地址。格式无法解码时，先转换为 M4A、MP3 或 WAV。
 
-**网络错误或转写被中断**  
+**网络错误或转写被中断**
+
 检查网络和 macOS 代理设置，再重试保留的音频。已完成的分段文字会保留；重试会重新转写完整音频。
 
-**历史记录保存失败**  
+**历史记录保存失败**
+
 先复制或导出当前文字，检查磁盘空间和历史目录权限。应用会阻止会丢弃未保存文字的切换操作；目录不可访问时，修复后重新启动应用。
+
+---
+
+## English
+
+**Turn recordings and audio files into text with your own OpenAI API key.**
+
+Local Transcriber (听写) is a lightweight native macOS app built with SwiftUI. It uses OpenAI's `gpt-transcribe` model to transcribe dictation, interviews, meetings, and study notes. Record or import audio, then review, copy, or export the transcript.
+
+> **Local app, cloud transcription.** The app runs on your Mac. When you start transcription, audio is uploaded directly to OpenAI. An internet connection and available OpenAI API credit are required; API charges are billed to your account.
+
+### Features
+
+- **Lightweight native app:** SwiftUI and macOS system frameworks, with no third-party dependencies, Electron, or Python runtime. The locally built app is approximately 2 MB; size varies by architecture and toolchain.
+- **Microphone recording:** Start recording and transcribe when you stop. macOS requests microphone permission on first use.
+- **Drag-and-drop or file selection:** Drop a file into the highlighted import area, click the area, or choose a file. Import one file at a time; importing alone does not upload audio.
+- **Long audio:** Files above the local upload threshold are converted, split, and transcribed sequentially, with progress updates and cancellation.
+- **Language and terminology hints:** Detect the language automatically or choose Mandarin Chinese, English, mixed Chinese and English, Cantonese, or Japanese. Add names, terminology, and recording context.
+- **Editing and export:** Edit text in the app, copy it, or export it as UTF-8 TXT.
+- **Local history:** Keep the latest 100 records, with search, rename, and delete. Completed transcript segments are saved as processing progresses.
+- **Keychain storage:** Your API key is stored in macOS Keychain and can be removed in settings.
+
+### Quick start
+
+#### 1. Download and install the DMG
+
+The current DMG supports **Apple Silicon (M-series) Macs running macOS 14 or later**. It does not support Intel Macs. You do not need Xcode or a compiler to install the app.
+
+1. Open this repository's **Releases** page and download **`LocalTranscriber-macOS-arm64.dmg`** from the version's **Assets** section.
+2. Double-click the DMG to open the “听写” disk image.
+3. Drag **`听写.app`** onto the **Applications** shortcut in the same window. Wait for copying to finish.
+4. Eject the “听写” disk image in Finder, then open “听写” from your Mac's Applications folder.
+5. Configure your own OpenAI API key as described below.
+
+**First launch:** The current app is ad hoc signed and has **not been signed with an Apple Developer ID certificate or notarized by Apple**. If macOS cannot verify the developer, and you have confirmed that the download is trustworthy and has not been tampered with, follow [Apple's instructions](https://support.apple.com/en-us/102445): open **System Settings → Privacy & Security**, choose **Open Anyway**, and follow the confirmation prompts.
+
+#### 2. Configure your API key
+
+Button names below match the current Chinese UI; English translations are provided in parentheses.
+
+Open **“设置与 API Key” (Settings & API Key)**, paste an API key created on the [OpenAI platform](https://platform.openai.com/api-keys), and save it. The key's project needs available API credit and access to `gpt-transcribe`.
+
+You do not need an `.env` file or an API key embedded in the source code.
+
+#### 3. Start transcribing
+
+1. **Record:** Click “开始录音” (Start Recording), speak, then click “停止并转写” (Stop and Transcribe).
+2. **Import:** Drop an audio file, click the import area, or use “导入音频” (Import Audio). Check the selected file, then click “转写音频” (Transcribe Audio).
+3. **Review:** Edit the transcript and press `⌘S` to save. Changes are also saved when switching records or quitting normally.
+4. **Export:** Copy the text or press `⌘⇧E` to export a TXT file.
+
+The app uses the microphone only after you start recording. It does not capture system audio.
+
+### Model, formats, and accuracy
+
+The app uses **`gpt-transcribe`** and does not automatically switch models. Based on the [OpenAI speech-to-text guide](https://developers.openai.com/api/docs/guides/speech-to-text) and [model documentation](https://developers.openai.com/api/docs/models/gpt-transcribe), checked on **October 23, 2026**, this is the officially recommended model for high-accuracy file transcription. Noise, accents, overlapping speakers, and specialist terminology can still affect results. Review important transcripts manually.
+
+- Transcripts preserve the original language. The app does not translate or call a separate text model to rewrite the result.
+- Keywords and recording context entered under “提升识别准确度” (Improve Recognition Accuracy) are sent with the transcription request. Use them for relevant names, brands, abbreviations, and background.
+- MP3, M4A, WAV, MP4, MPEG, MPGA, FLAC, OGG, and WebM files up to **24 MB** can be uploaded directly.
+- Larger files and other importable media formats are converted to M4A using native macOS components and split into segments of up to **10 minutes**. Segments are split further if needed to meet the size limit.
+- Conversion requires macOS to be able to decode the source. If a file cannot be read, convert it to M4A, MP3, or WAV first. Video files must contain a usable audio track.
+- Segment boundaries may fall within sentences; review transitions between segments. The current version does not provide speaker identification, subtitle timestamps, or live word-by-word transcription.
+
+### Privacy and storage
+
+**Uploads:** Only when transcription starts, the selected audio or recording and your language, keyword, and context hints are sent directly to OpenAI. The app has no intermediary server or telemetry.
+
+**API key:** Stored in macOS Keychain under the service `com.localtranscriber.mac`. It is not written to source code, UserDefaults, logs, or transcript history. Keychain synchronization is not enabled.
+
+**Transcript history:** Stored at `~/Library/Application Support/LocalTranscriber/history.json`, with a limit of 100 records. Directory permissions are `0700` and file permissions are `0600`; history is stored as local plaintext. Language, keywords, and recording context are stored in the app's local preferences.
+
+**Audio files:** Original imported files are never modified or deleted. Temporary recordings are deleted after successful transcription, when discarded, when switching tasks, or on normal exit. They are retained after failure or cancellation so you can retry. Temporary conversion and upload copies are cleaned up after processing; a crash or forced quit may leave temporary files.
+
+**Interruptions and retries:** Partial text is saved after each completed segment. Retrying processes the entire recording again, creates a new record, and incurs additional API charges. Earlier partial results are preserved. If microphone recording is interrupted unexpectedly, the app attempts to retain the usable audio.
+
+### Keyboard shortcuts
+
+- `⌘N`: New transcription
+- `⌘O`: Import audio
+- `⌘⇧R`: Start recording / Stop and transcribe
+- `⌘S`: Save edits
+- `⌘⇧E`: Export text
+- `⌘,`: Settings
+
+### Development and validation
+
+The project uses Swift Package Manager, SwiftUI for the interface, AVFoundation for audio processing, and the Security framework for key storage.
+
+#### Build from source
+
+Requires **macOS 14 or later** and Xcode or Command Line Tools with **Swift 6**. Check your toolchain with `swift --version`.
+
+```sh
+git clone <repository-url> local-transcriber
+cd local-transcriber
+bash scripts/build-app.sh
+open "dist/听写.app"
+```
+
+Replace `<repository-url>` with this repository's GitHub clone URL. The build script generates:
+
+- `dist/听写.app`: The app bundle you can run locally.
+- `dist/LocalTranscriber-macOS.zip`: A ZIP archive of the app.
+
+The script builds for the current Mac's architecture, does not produce a Universal Binary, and applies an ad hoc signature. The release DMG is packaged separately from the app; this script does not generate a DMG automatically.
+
+#### Project structure and tests
+
+```text
+.
+├── Package.swift
+├── Sources/
+│   ├── LocalTranscriber/       # UI, recording, import, preprocessing, local storage
+│   └── TranscriberCore/        # OpenAI requests, validation, errors, cancellation
+├── Tests/
+│   ├── LocalTranscriberTests/  # File import, editing state, history
+│   └── TranscriberCoreTests/   # Mock API request tests
+├── Resources/                 # App metadata and signing entitlements
+└── scripts/                   # App packaging and icon generation
+```
+
+Run tests from the repository root. They do not require an API key and do not make real API requests:
+
+```sh
+CLANG_MODULE_CACHE_PATH="$PWD/.build/clang-module-cache" \
+SWIFTPM_MODULECACHE_OVERRIDE="$PWD/.build/swift-module-cache" \
+swift test --disable-sandbox
+```
+
+Version **1.1.0** includes 27 automated tests: 7 file import tests, 9 local state and history tests, and 11 transcription API tests. Local builds, automated tests, UI checks, and synthetic audio conversion and segmentation checks have been completed. Real microphone recording and real OpenAI API transcription still need to be verified after configuring a key and granting permission.
+
+#### Publish to GitHub Releases
+
+When creating a release on the GitHub website, attach `dist/LocalTranscriber-macOS-arm64.dmg` and copy the contents of [RELEASE_NOTES.md](RELEASE_NOTES.md) into the release description. Wait for the asset upload to finish before publishing. The DMG contains `听写.app` and an Applications shortcut for drag-and-drop installation.
+
+If you later complete Developer ID signing and Apple notarization, repackage and upload the final DMG, and update the signing status in both the README and release notes. Signing and notarization must follow the build. Do not rerun the build script afterward, because it overwrites the signature.
+
+### Troubleshooting
+
+**Swift is missing or the toolchain is too old**
+
+Install Xcode or Command Line Tools containing Swift 6, check `swift --version`, and run the build script again.
+
+**Invalid API key, insufficient credit, or unavailable model**
+
+Check the key's OpenAI project, API credit, and model access. The app displays the error and does not fall back to another model.
+
+**Recording fails or microphone permission is missing**
+
+Allow “听写” under **System Settings → Privacy & Security → Microphone**. Launch the built `.app` so macOS can identify its permission request, and check that an input device is available.
+
+**A file cannot be imported or converted**
+
+Import one nonempty audio or video file that has been downloaded to your Mac. Folders, shortcuts, and web URLs cannot be imported directly. If decoding fails, convert the file to M4A, MP3, or WAV first.
+
+**Network error or interrupted transcription**
+
+Check the network connection and macOS proxy settings, then retry the retained audio. Completed segments remain saved. Retrying transcribes the full audio again.
+
+**Transcript history cannot be saved**
+
+Copy or export the current text first, then check disk space and the history directory's permissions. The app blocks navigation that would discard unsaved edits. If the directory is inaccessible, fix its permissions and restart the app.
