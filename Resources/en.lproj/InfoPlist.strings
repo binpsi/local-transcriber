@@ -1,0 +1,2 @@
+"CFBundleDisplayName" = "Local Transcriber";
+"NSMicrophoneUsageDescription" = "Local Transcriber records your voice using the microphone. When you stop recording, the audio is sent to OpenAI for transcription.";

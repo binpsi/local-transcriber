@@ -1,0 +1,2 @@
+"CFBundleDisplayName" = "听写";
+"NSMicrophoneUsageDescription" = "听写使用麦克风录制你的语音。点击停止后，录音将发送至 OpenAI 转为文字。";

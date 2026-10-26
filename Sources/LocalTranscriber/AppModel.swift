@@ -6,6 +6,9 @@ import TranscriberCore
 enum LanguageHint: String, CaseIterable, Identifiable {
     case auto = "自动识别", chinese = "普通话", bilingual = "中文 + English", english = "English", cantonese = "粤语", japanese = "日本語"
     var id: String { rawValue }
+    func displayName(in language: AppLanguage) -> String {
+        AppLocalization.text(rawValue, language: language)
+    }
     var codes: [String] {
         switch self {
         case .auto: return []
@@ -22,6 +25,10 @@ enum LanguageHint: String, CaseIterable, Identifiable {
 final class AppModel: ObservableObject {
     let recorder = AudioRecorder()
     let history: HistoryStore
+    private let defaults: UserDefaults
+    @Published var interfaceLanguage: AppLanguage {
+        didSet { defaults.set(interfaceLanguage.rawValue, forKey: "interfaceLanguage") }
+    }
     @Published var showSettings = false
     @Published private(set) var hasAPIKey = false
     @Published var selectedRecordID: UUID?
@@ -38,13 +45,13 @@ final class AppModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var notice: String?
     @Published var language: LanguageHint {
-        didSet { UserDefaults.standard.set(language.rawValue, forKey: "languageHint") }
+        didSet { defaults.set(language.rawValue, forKey: "languageHint") }
     }
     @Published var context: String {
-        didSet { UserDefaults.standard.set(context, forKey: "transcriptionContext") }
+        didSet { defaults.set(context, forKey: "transcriptionContext") }
     }
     @Published var keywords: String {
-        didSet { UserDefaults.standard.set(keywords, forKey: "transcriptionKeywords") }
+        didSet { defaults.set(keywords, forKey: "transcriptionKeywords") }
     }
     private var apiKey = ""
     private var ownedRecording: URL?
@@ -56,21 +63,37 @@ final class AppModel: ObservableObject {
 
     var isWorking: Bool { isBusy || isStartingRecording || isImportingAudio || recorder.isRecording || isTerminating }
     var canTranscribe: Bool { sourceURL != nil && !isWorking }
+    // Only app-owned microphone labels are localized. Imported filenames and
+    // saved transcript content remain exactly as supplied by the user.
+    var displaySourceName: String { ownedRecording == nil ? sourceName : t(sourceName) }
     var hasEdits: Bool {
         guard let record = history.records.first(where: { $0.id == selectedRecordID }) else { return !draftText.isEmpty }
         return record.text != draftText || record.title != draftTitle
     }
 
-    init(history: HistoryStore? = nil, loadAPIKey: Bool = true) {
+    init(history: HistoryStore? = nil, loadAPIKey: Bool = true,
+         defaults: UserDefaults = .standard, preferredLanguages: [String] = Locale.preferredLanguages) {
+        self.defaults = defaults
         self.history = history ?? HistoryStore()
-        language = LanguageHint(rawValue: UserDefaults.standard.string(forKey: "languageHint") ?? "") ?? .auto
-        context = UserDefaults.standard.string(forKey: "transcriptionContext") ?? ""
-        keywords = UserDefaults.standard.string(forKey: "transcriptionKeywords") ?? ""
+        interfaceLanguage = AppLanguage.resolve(savedValue: defaults.string(forKey: "interfaceLanguage"),
+                                                preferredLanguages: preferredLanguages)
+        language = LanguageHint(rawValue: defaults.string(forKey: "languageHint") ?? "") ?? .auto
+        context = defaults.string(forKey: "transcriptionContext") ?? ""
+        keywords = defaults.string(forKey: "transcriptionKeywords") ?? ""
+        draftTitle = AppLocalization.text("新的转写", language: interfaceLanguage)
         guard loadAPIKey else { return }
         do {
             apiKey = try KeychainStore.load() ?? ""
             hasAPIKey = !apiKey.isEmpty
         } catch { errorMessage = error.localizedDescription }
+    }
+
+    func t(_ canonicalChinese: String) -> String {
+        AppLocalization.text(canonicalChinese, language: interfaceLanguage)
+    }
+
+    func format(_ canonicalChineseFormat: String, _ arguments: CVarArg...) -> String {
+        AppLocalization.formatted(canonicalChineseFormat, language: interfaceLanguage, arguments: arguments)
     }
 
     func saveAPIKey(_ value: String) throws {
@@ -93,7 +116,8 @@ final class AppModel: ObservableObject {
     func importAudio() {
         guard !isWorking else { return }
         let panel = NSOpenPanel()
-        panel.title = "选择要转写的音频"
+        panel.title = t("选择要转写的音频")
+        panel.prompt = t("导入")
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.allowedContentTypes = AudioImport.allowedContentTypes
@@ -181,7 +205,8 @@ final class AppModel: ObservableObject {
             do {
                 try await self.recorder.start()
                 self.status = "正在录音"
-                self.draftTitle = "录音 · " + Date().formatted(date: .abbreviated, time: .shortened)
+                let timestamp = Date().formatted(.dateTime.locale(self.interfaceLanguage.locale))
+                self.draftTitle = self.format("录音 · %@", timestamp)
             } catch {
                 self.errorMessage = error.localizedDescription
                 self.status = "录音未开始"
@@ -214,13 +239,15 @@ final class AppModel: ObservableObject {
         // Each retry gets a new record. A failed retry must never overwrite a
         // previously saved partial transcript with an empty or shorter result.
         let recordID = UUID()
-        let title = draftTitle.replacingOccurrences(of: "（未完成）", with: "")
+        let title = ["（未完成）", " (Incomplete)"].reduce(draftTitle) { value, suffix in
+            value.hasSuffix(suffix) ? String(value.dropLast(suffix.count)) : value
+        }
         let name = sourceName
         let operationID = UUID()
         activeOperationID = operationID
         selectedRecordID = recordID
         draftCreatedAt = Date()
-        draftTitle = title + "（未完成）"
+        draftTitle = title + t("（未完成）")
         errorMessage = nil
         notice = nil
         isBusy = true
@@ -320,7 +347,7 @@ final class AppModel: ObservableObject {
         let id = selectedRecordID ?? UUID()
         let old = history.records.first(where: { $0.id == id })
         do {
-            try history.save(TranscriptRecord(id: id, title: draftTitle.isEmpty ? "未命名转写" : draftTitle,
+            try history.save(TranscriptRecord(id: id, title: draftTitle.isEmpty ? t("未命名转写") : draftTitle,
                                              text: draftText, createdAt: old?.createdAt ?? draftCreatedAt,
                                              sourceName: old?.sourceName ?? sourceName, model: old?.model ?? TranscriptionOptions.model))
             selectedRecordID = id
@@ -338,6 +365,8 @@ final class AppModel: ObservableObject {
     func exportText() {
         guard !draftText.isEmpty else { return }
         let panel = NSSavePanel()
+        panel.title = t("导出转写文字")
+        panel.prompt = t("导出")
         panel.allowedContentTypes = [.plainText]
         panel.nameFieldStringValue = draftTitle.replacingOccurrences(of: "/", with: "-") + ".txt"
         guard panel.runModal() == .OK, let url = panel.url else { return }
@@ -369,7 +398,7 @@ final class AppModel: ObservableObject {
         selectedRecordID = nil
         draftCreatedAt = Date()
         draftText = ""
-        draftTitle = "新的转写"
+        draftTitle = t("新的转写")
         status = "准备就绪"
         progress = 0
         errorMessage = nil
